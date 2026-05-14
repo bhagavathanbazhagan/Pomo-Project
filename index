@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomegranate Executive Command Center | Ninjacart</title>
-    <!-- Tailwind CSS for styling -->
+    <title>PomoCore Executive | Ninjacart</title>
+    <!-- Use standard CDN links for maximum compatibility -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Font Awesome for icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
         
@@ -22,132 +19,137 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-dark);
             color: #f8fafc;
-            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         .glass-panel {
             background: rgba(18, 18, 22, 0.7);
-            backdrop-filter: blur(24px);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
         }
 
-        .glass-panel:hover {
-            border-color: rgba(190, 18, 60, 0.3);
-        }
-
-        .sidebar-item-active {
+        .nav-active {
             background: rgba(190, 18, 60, 0.15);
             color: #fb7185;
-            border-right: 4px solid #be123c;
+            border-left: 4px solid #be123c;
         }
 
-        .table-alt tr:nth-child(even) {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .page-container {
-            transition: opacity 0.4s ease, transform 0.4s ease;
-        }
-
-        .hidden-page {
+        .hidden-section {
             display: none;
-            opacity: 0;
-            transform: translateY(10px);
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
+        /* Responsive table wrapper */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
-        ::-webkit-scrollbar-track {
-            background: #09090b;
+
+        table {
+            min-width: 500px;
+            width: 100%;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #27272a;
-            border-radius: 10px;
+
+        /* Animation for page switching */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #be123c;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body class="flex flex-col lg:flex-row min-h-screen">
 
-    <!-- Sidebar -->
-    <aside class="w-72 border-r border-white/5 bg-black/80 fixed h-full z-50 hidden lg:block">
-        <div class="p-8">
-            <div class="flex items-center gap-3 mb-12">
-                <div class="w-10 h-10 bg-rose-700 rounded-xl flex items-center justify-center shadow-lg shadow-rose-900/40">
-                    <i class="fas fa-seedling text-white"></i>
+    <!-- Mobile Header -->
+    <header class="lg:hidden flex items-center justify-between p-4 bg-black border-b border-white/10 sticky top-0 z-[100]">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-rose-600 rounded flex items-center justify-center">
+                <i class="fas fa-chart-pie text-white text-xs"></i>
+            </div>
+            <span class="font-black tracking-tighter uppercase text-sm">Pomo<span class="text-rose-600">Core</span></span>
+        </div>
+        <button onclick="toggleMobileMenu()" class="text-white p-2">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar / Mobile Nav -->
+    <aside id="sidebar" class="hidden lg:flex w-full lg:w-72 border-r border-white/5 bg-black fixed h-full z-50 flex-col">
+        <div class="p-8 hidden lg:block">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-10 h-10 bg-rose-700 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-chart-line text-white"></i>
                 </div>
                 <div>
-                    <h2 class="font-extrabold tracking-tighter text-xl uppercase">Pomo<span class="text-rose-600 italic">DMP</span></h2>
-                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Ninjacart Analytics</p>
+                    <h2 class="font-extrabold tracking-tighter text-xl uppercase leading-none">Pomo<span class="text-rose-600">Core</span></h2>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Ninjacart Intel</p>
                 </div>
             </div>
-            
-            <nav class="space-y-1">
-                <button onclick="showPage('overall')" id="btn-overall" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold sidebar-item-active rounded-l-lg transition-all">
-                    <i class="fas fa-th-large w-5"></i> 1. Overall & L2Y
-                </button>
-                <button onclick="showPage('supply')" id="btn-supply" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-slate-400 hover:text-white transition-all">
-                    <i class="fas fa-truck-moving w-5"></i> 2. Supply Breakdown
-                </button>
-                <button onclick="showPage('demand')" id="btn-demand" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-slate-400 hover:text-white transition-all">
-                    <i class="fas fa-chart-line w-5"></i> 3. Demand Intelligence
-                </button>
-                <button onclick="showPage('team')" id="btn-team" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-slate-400 hover:text-white transition-all">
-                    <i class="fas fa-users-cog w-5"></i> 4. Team Structure
-                </button>
-                <button onclick="showPage('outlook')" id="btn-outlook" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-slate-400 hover:text-white transition-all">
-                    <i class="fas fa-forward w-5"></i> 5. Way Forward
-                </button>
-            </nav>
         </div>
         
-        <div class="absolute bottom-0 w-full p-6">
-            <div class="p-4 bg-rose-950/20 rounded-2xl border border-rose-900/20 mb-4">
-                <p class="text-[9px] font-bold text-rose-500 uppercase">Season Scale</p>
-                <p class="text-xs text-slate-400 font-bold">GMV: ₹25.94 Cr</p>
-                <div class="w-full bg-slate-800 h-1 mt-2 rounded-full overflow-hidden">
-                    <div class="bg-rose-600 h-full w-full shadow-[0_0_10px_rgba(225,29,72,0.5)]"></div>
+        <nav class="flex-1 px-4 space-y-1">
+            <button onclick="navigateTo('overall')" id="nav-overall" class="nav-item w-full flex items-center gap-4 px-4 py-4 text-sm font-bold nav-active transition-all text-left">
+                <i class="fas fa-home w-5"></i> Overall & L2Y
+            </button>
+            <button onclick="navigateTo('supply')" id="nav-supply" class="nav-item w-full flex items-center gap-4 px-4 py-4 text-sm font-bold text-slate-400 hover:text-white transition-all text-left">
+                <i class="fas fa-boxes w-5"></i> Supply Deep Dive
+            </button>
+            <button onclick="navigateTo('demand')" id="nav-demand" class="nav-item w-full flex items-center gap-4 px-4 py-4 text-sm font-bold text-slate-400 hover:text-white transition-all text-left">
+                <i class="fas fa-store w-5"></i> Demand Intel
+            </button>
+            <button onclick="navigateTo('team')" id="nav-team" class="nav-item w-full flex items-center gap-4 px-4 py-4 text-sm font-bold text-slate-400 hover:text-white transition-all text-left">
+                <i class="fas fa-users w-5"></i> Org & Governance
+            </button>
+            <button onclick="navigateTo('outlook')" id="nav-outlook" class="nav-item w-full flex items-center gap-4 px-4 py-4 text-sm font-bold text-slate-400 hover:text-white transition-all text-left">
+                <i class="fas fa-rocket w-5"></i> 6% Target Plan
+            </button>
+        </nav>
+
+        <div class="p-6 mt-auto border-t border-white/5">
+            <div class="bg-rose-950/20 p-4 rounded-xl border border-rose-900/30">
+                <p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Season Status</p>
+                <p class="text-xs text-white font-bold mt-1">₹25.94 Cr GMV</p>
+                <div class="w-full bg-white/10 h-1 mt-2 rounded-full overflow-hidden">
+                    <div class="bg-rose-600 h-full w-full"></div>
                 </div>
             </div>
-            <p class="text-[10px] text-slate-600 font-bold text-center uppercase tracking-widest">Confidential Reporting</p>
         </div>
     </aside>
 
-    <!-- Content -->
-    <main class="lg:ml-72 flex-1 p-6 lg:p-12">
+    <!-- Main Content -->
+    <main class="flex-1 lg:ml-72 p-6 lg:p-12">
         
-        <!-- PAGE 1: OVERALL VIEW -->
-        <div id="page-overall" class="page-container space-y-10">
-            <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <!-- Section: Overall -->
+        <section id="section-overall" class="fade-in space-y-10">
+            <div class="flex flex-col lg:flex-row justify-between lg:items-end gap-6">
                 <div>
-                    <span class="text-rose-500 font-black text-xs uppercase tracking-[0.2em]">Executive Summary</span>
-                    <h1 class="text-4xl lg:text-6xl font-black tracking-tighter mt-2 leading-none uppercase">Season<br><span class="text-rose-600">Comparison</span></h1>
+                    <h1 class="text-4xl lg:text-6xl font-black tracking-tighter uppercase">Season Summary</h1>
+                    <p class="text-slate-500 mt-2 font-bold uppercase tracking-widest text-xs">Comparison: 25-26 vs 24-25</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10 text-center">
-                        <p class="text-[10px] text-slate-500 uppercase font-bold">GMV (5x Growth)</p>
-                        <p class="text-2xl font-black italic">₹25.9 Cr</p>
+                <div class="flex gap-4">
+                    <div class="bg-emerald-500/10 border border-emerald-500/20 px-6 py-4 rounded-2xl text-center">
+                        <p class="text-[10px] uppercase font-bold text-emerald-500">Scale Growth</p>
+                        <p class="text-2xl font-black">5.7X</p>
                     </div>
-                    <div class="p-4 bg-rose-600/10 rounded-2xl border border-rose-600/20 text-center">
-                        <p class="text-[10px] text-rose-500 uppercase font-bold">Margins (3x Growth)</p>
-                        <p class="text-2xl font-black italic">₹67.5 L</p>
+                    <div class="bg-rose-500/10 border border-rose-500/20 px-6 py-4 rounded-2xl text-center">
+                        <p class="text-[10px] uppercase font-bold text-rose-500">Margin Growth</p>
+                        <p class="text-2xl font-black">3.1X</p>
                     </div>
                 </div>
-            </header>
+            </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Current Season Table -->
-                <div class="glass-panel p-8 rounded-[2rem]">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <!-- Current Season -->
+                <div class="glass-panel p-6 lg:p-8 rounded-3xl">
                     <h3 class="text-lg font-black uppercase text-rose-500 italic mb-6">This Season (25-26)</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs table-alt">
+                    <div class="table-container">
+                        <table class="text-xs text-left">
                             <thead>
-                                <tr class="text-slate-500 font-bold border-b border-white/5 uppercase">
+                                <tr class="text-slate-500 uppercase border-b border-white/10">
                                     <th class="py-3 px-2">Month</th>
                                     <th class="py-3 px-2">GMV (Cr)</th>
                                     <th class="py-3 px-2">Margin (L)</th>
@@ -155,30 +157,25 @@
                                 </tr>
                             </thead>
                             <tbody class="text-slate-300">
-                                <tr><td class="py-3 px-2">Nov 25</td><td class="py-3 px-2 italic">0.21</td><td class="py-3 px-2 text-rose-500">-1.13</td><td class="py-3 px-2 text-right text-rose-500">-5.30%</td></tr>
-                                <tr><td class="py-3 px-2">Dec 25</td><td class="py-3 px-2 italic">3.90</td><td class="py-3 px-2">7.44</td><td class="py-3 px-2 text-right">1.91%</td></tr>
-                                <tr><td class="py-3 px-2">Jan 26</td><td class="py-3 px-2 italic">4.28</td><td class="py-3 px-2">14.79</td><td class="py-3 px-2 text-right">3.45%</td></tr>
-                                <tr><td class="py-3 px-2 font-bold text-rose-400 italic">Feb 26</td><td class="py-3 px-2 font-bold italic text-rose-400">7.32</td><td class="py-3 px-2 font-bold text-rose-400">22.47</td><td class="py-3 px-2 text-right font-bold text-rose-400">3.07%</td></tr>
-                                <tr><td class="py-3 px-2">Mar 26</td><td class="py-3 px-2 italic">7.22</td><td class="py-3 px-2">14.56</td><td class="py-3 px-2 text-right">2.02%</td></tr>
-                                <tr><td class="py-3 px-2">Apr 26</td><td class="py-3 px-2 italic">3.00</td><td class="py-3 px-2">9.44</td><td class="py-3 px-2 text-right">3.14%</td></tr>
-                                <tr class="bg-rose-900/30 font-black">
-                                    <td class="py-4 px-2">TOTAL</td>
-                                    <td class="py-4 px-2 italic">25.94</td>
-                                    <td class="py-4 px-2">67.57</td>
-                                    <td class="py-4 px-2 text-right">2.61%</td>
-                                </tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Nov 25</td><td class="py-3 px-2 italic">0.21</td><td class="py-3 px-2 text-rose-500">-1.13</td><td class="py-3 px-2 text-right">-5.30%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Dec 25</td><td class="py-3 px-2 italic">3.90</td><td class="py-3 px-2">7.44</td><td class="py-3 px-2 text-right">1.91%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Jan 26</td><td class="py-3 px-2 italic">4.28</td><td class="py-3 px-2">14.79</td><td class="py-3 px-2 text-right">3.45%</td></tr>
+                                <tr class="border-b border-white/5 bg-rose-900/10"><td class="py-3 px-2 font-bold text-rose-400 italic">Feb 26</td><td class="py-3 px-2 font-bold">7.32</td><td class="py-3 px-2 font-bold">22.47</td><td class="py-3 px-2 text-right font-bold">3.07%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Mar 26</td><td class="py-3 px-2 italic">7.22</td><td class="py-3 px-2">14.56</td><td class="py-3 px-2 text-right">2.02%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Apr 26</td><td class="py-3 px-2 italic">3.00</td><td class="py-3 px-2">9.44</td><td class="py-3 px-2 text-right">3.14%</td></tr>
+                                <tr class="bg-rose-600/20 font-black"><td class="py-4 px-2">TOTAL</td><td class="py-4 px-2 italic">25.94</td><td class="py-4 px-2">67.57</td><td class="py-4 px-2 text-right">2.61%</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Last Season Table -->
-                <div class="glass-panel p-8 rounded-[2rem]">
+                <!-- Last Season -->
+                <div class="glass-panel p-6 lg:p-8 rounded-3xl">
                     <h3 class="text-lg font-black uppercase text-slate-500 italic mb-6">Last Season (24-25)</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs table-alt">
+                    <div class="table-container">
+                        <table class="text-xs text-left">
                             <thead>
-                                <tr class="text-slate-500 font-bold border-b border-white/5 uppercase">
+                                <tr class="text-slate-600 uppercase border-b border-white/10">
                                     <th class="py-3 px-2">Month</th>
                                     <th class="py-3 px-2">GMV (Cr)</th>
                                     <th class="py-3 px-2">Margin (L)</th>
@@ -186,284 +183,199 @@
                                 </tr>
                             </thead>
                             <tbody class="text-slate-400">
-                                <tr><td class="py-3 px-2">Dec 24</td><td class="py-3 px-2">0.60</td><td class="py-3 px-2">0.12</td><td class="py-3 px-2 text-right">0.19%</td></tr>
-                                <tr><td class="py-3 px-2">Jan 25</td><td class="py-3 px-2">0.26</td><td class="py-3 px-2">0.65</td><td class="py-3 px-2 text-right">2.46%</td></tr>
-                                <tr><td class="py-3 px-2">Feb 25</td><td class="py-3 px-2">1.19</td><td class="py-3 px-2">3.69</td><td class="py-3 px-2 text-right">3.12%</td></tr>
-                                <tr><td class="py-3 px-2">Mar 25</td><td class="py-3 px-2">0.68</td><td class="py-3 px-2">2.45</td><td class="py-3 px-2 text-right">3.60%</td></tr>
-                                <tr><td class="py-3 px-2">Apr 25</td><td class="py-3 px-2">1.63</td><td class="py-3 px-2">10.74</td><td class="py-3 px-2 text-right">6.57%</td></tr>
-                                <tr><td class="py-3 px-2">May 25</td><td class="py-3 px-2">0.18</td><td class="py-3 px-2">4.35</td><td class="py-3 px-2 text-right">24.46%*</td></tr>
-                                <tr class="bg-slate-800 font-black">
-                                    <td class="py-4 px-2">TOTAL</td>
-                                    <td class="py-4 px-2">4.54</td>
-                                    <td class="py-4 px-2">22.00</td>
-                                    <td class="py-4 px-2 text-right">4.84%</td>
-                                </tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Dec 24</td><td class="py-3 px-2">0.60</td><td class="py-3 px-2">0.12</td><td class="py-3 px-2 text-right">0.19%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Jan 25</td><td class="py-3 px-2">0.26</td><td class="py-3 px-2">0.65</td><td class="py-3 px-2 text-right">2.46%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Feb 25</td><td class="py-3 px-2">1.19</td><td class="py-3 px-2">3.69</td><td class="py-3 px-2 text-right">3.12%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Mar 25</td><td class="py-3 px-2">0.68</td><td class="py-3 px-2">2.45</td><td class="py-3 px-2 text-right">3.60%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">Apr 25</td><td class="py-3 px-2">1.63</td><td class="py-3 px-2">10.74</td><td class="py-3 px-2 text-right">6.57%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-3 px-2">May 25</td><td class="py-3 px-2">0.18</td><td class="py-3 px-2">4.35</td><td class="py-3 px-2 text-right">24.46%</td></tr>
+                                <tr class="bg-white/5 font-black"><td class="py-4 px-2">TOTAL</td><td class="py-4 px-2 italic">4.54</td><td class="py-4 px-2">22.00</td><td class="py-4 px-2 text-right">4.84%</td></tr>
                             </tbody>
                         </table>
                     </div>
-                    <p class="mt-4 text-[9px] text-slate-500 italic font-medium leading-relaxed">
-                        *Removing anomaly collection of 1 trade, last year gross margins were normalized at ~4%. Focus shifted from patti mods to building seller trust.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Supply -->
+        <section id="section-supply" class="hidden-section fade-in space-y-10">
+            <h2 class="text-4xl font-black uppercase tracking-tighter text-rose-600">Supply Intelligence</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-panel p-8 rounded-3xl">
+                    <h3 class="font-bold text-rose-500 uppercase text-xs mb-4">Origin Distribution</h3>
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
+                            <div>
+                                <p class="text-xl font-black italic">Gujarat Origin</p>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mt-1">₹13.84 Cr GMV (53%)</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-black text-rose-500 italic">2.03%</p>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mt-1">Net Margin</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
+                            <div>
+                                <p class="text-xl font-black italic">Rajasthan Origin</p>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mt-1">₹12.10 Cr GMV (47%)</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-black text-emerald-500 italic">3.25%</p>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mt-1">Net Margin</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-rose-600 p-8 rounded-3xl shadow-2xl flex flex-col justify-center">
+                    <p class="text-xs font-black uppercase text-rose-100 tracking-[0.2em]">Underwriting Yield</p>
+                    <h4 class="text-6xl font-black italic text-white mt-2">₹7.00 Cr</h4>
+                    <p class="text-xs text-rose-100 mt-4 leading-relaxed italic">
+                        Secured through ₹70L advances to anchor suppliers (JK & DL), yielding a superior 2.85% margin compared to spot market buys (2.52%).
                     </p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- PAGE 2: SUPPLY BREAKDOWN -->
-        <div id="page-supply" class="hidden-page page-container space-y-10">
-            <header>
-                <h1 class="text-5xl font-black uppercase tracking-tighter text-rose-600 italic">Supply Deep Dive</h1>
-                <p class="text-slate-500 mt-4 max-w-2xl font-medium">Underwriting performance and origin acquisition metrics.</p>
-            </header>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Underwriting Impact -->
-                <div class="lg:col-span-2 glass-panel p-8 rounded-[2.5rem]">
-                    <h3 class="text-lg font-black uppercase mb-6 italic tracking-tighter">Underwriting vs. Spot Procurement</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
+        <!-- Section: Demand -->
+        <section id="section-demand" class="hidden-section fade-in space-y-10">
+            <h2 class="text-4xl font-black uppercase tracking-tighter text-rose-600">Demand Intelligence</h2>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <div class="glass-panel p-8 rounded-3xl">
+                    <h3 class="text-lg font-black uppercase mb-6 italic tracking-tighter">Market Leaderboard (25-26)</h3>
+                    <div class="table-container">
+                        <table class="text-xs text-left">
                             <thead>
-                                <tr class="text-slate-500 uppercase border-b border-white/5 font-bold">
-                                    <th class="py-4">Supply Channel</th>
-                                    <th class="py-4">GMV Yield</th>
-                                    <th class="py-4">Net Margin</th>
-                                    <th class="py-4 text-right">Yield Multiplier</th>
+                                <tr class="text-slate-500 uppercase border-b border-white/10">
+                                    <th class="py-3 px-2">Market</th>
+                                    <th class="py-3 px-2">GMV (Cr)</th>
+                                    <th class="py-3 px-2 text-right">Margin %</th>
                                 </tr>
                             </thead>
                             <tbody class="text-slate-300">
-                                <tr class="border-b border-white/5">
-                                    <td class="py-5 font-bold">Underwriting (JK/DL)</td>
-                                    <td class="py-5 italic">₹7.00 Cr</td>
-                                    <td class="py-5 font-bold text-emerald-400">2.85%</td>
-                                    <td class="py-5 text-right font-black italic text-rose-500">10x Capital</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-5 font-bold">Non-Underwriting</td>
-                                    <td class="py-5 italic">₹18.94 Cr</td>
-                                    <td class="py-5 font-bold text-rose-400">2.52%</td>
-                                    <td class="py-5 text-right font-black italic">Organic</td>
-                                </tr>
+                                <tr class="border-b border-white/5"><td class="py-4 px-2 font-bold italic">Chennai (SR Fruits)</td><td class="py-4 px-2 italic">12.72</td><td class="py-4 px-2 text-right font-black text-emerald-400 italic">4.39%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-4 px-2 font-bold italic">Madurai (MNR)</td><td class="py-4 px-2 italic">5.85</td><td class="py-4 px-2 text-right font-black text-emerald-400 italic">6.01%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-4 px-2 font-bold italic">Hyderabad</td><td class="py-4 px-2 italic">3.41</td><td class="py-4 px-2 text-right italic text-rose-500">1.15%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-4 px-2 font-bold italic">Bengaluru</td><td class="py-4 px-2 italic">2.01</td><td class="py-4 px-2 text-right italic">1.55%</td></tr>
+                                <tr class="border-b border-white/5"><td class="py-4 px-2 font-bold italic">Kolkata</td><td class="py-4 px-2 italic">0.95</td><td class="py-4 px-2 text-right italic">0.60%</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-                
-                <!-- Capital Deployed Card -->
-                <div class="bg-rose-600 p-8 rounded-[2.5rem] flex flex-col justify-center shadow-xl">
-                    <p class="text-xs font-black uppercase text-rose-200 tracking-widest">Total Underwriting</p>
-                    <h4 class="text-5xl font-black italic text-white mt-2">₹70 Lac</h4>
-                    <p class="text-xs mt-4 text-rose-100 italic leading-relaxed">Deployed as advances to JK (Gujarat) and Dhanlaxmi (Rajasthan) to secure season-long inventory locks.</p>
+                <div class="bg-gradient-to-br from-slate-900 to-black p-10 rounded-3xl border border-white/10 flex flex-col justify-center text-center">
+                    <div class="w-16 h-16 bg-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-rose-900/20">
+                        <i class="fas fa-bolt text-white text-2xl"></i>
+                    </div>
+                    <h4 class="text-3xl font-black italic text-white uppercase">ACM Alpha Model</h4>
+                    <p class="text-xs text-slate-500 mt-4 leading-relaxed font-medium italic max-w-sm mx-auto">
+                        Assisted Commission Model (ACM) yielded ₹2.46 Cr GMV at a massive 5.69% Net Margin, proving to be the primary training lever for Cluster Heads.
+                    </p>
                 </div>
             </div>
+        </section>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                <div class="p-8 glass-panel rounded-[2.5rem] border-rose-500/20">
-                    <h4 class="text-xl font-black italic text-white uppercase mb-4">Gujarat (Trader Focus)</h4>
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <p class="text-3xl font-black italic">₹13.84 Cr</p>
-                            <p class="text-[10px] font-bold text-rose-500 uppercase mt-1">GMV Acquisition</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-2xl font-black text-rose-500 italic">2.03%</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">Net Margin</p>
-                        </div>
-                    </div>
+        <!-- Section: Team & Org -->
+        <section id="section-team" class="hidden-section fade-in space-y-10">
+            <h2 class="text-4xl font-black uppercase tracking-tighter text-rose-600">Org & Governance</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-panel p-6 rounded-2xl border-rose-500/30 text-center">
+                    <p class="text-[10px] font-bold text-rose-500 uppercase mb-2">P&L Accountability</p>
+                    <p class="text-lg font-black italic">1 Category Head</p>
+                    <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase">Total Oversight</p>
                 </div>
-                <div class="p-8 glass-panel rounded-[2.5rem] border-emerald-500/20">
-                    <h4 class="text-xl font-black italic text-white uppercase mb-4">Rajasthan (Relationship Focus)</h4>
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <p class="text-3xl font-black italic">₹12.10 Cr</p>
-                            <p class="text-[10px] font-bold text-emerald-500 uppercase mt-1">GMV Acquisition</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-2xl font-black text-emerald-500 italic">3.25%</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">Net Margin</p>
-                        </div>
-                    </div>
+                <div class="glass-panel p-6 rounded-2xl text-center">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Execution Layer</p>
+                    <p class="text-lg font-black italic">4 Cluster Heads</p>
+                    <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase">2 Gujarat / 2 Rajasthan</p>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl text-center">
+                    <p class="text-[10px] font-bold text-emerald-500 uppercase mb-2">Credit Control</p>
+                    <p class="text-lg font-black italic">Zero DPD</p>
+                    <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase">Strict Collection Cycle</p>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl text-center">
+                    <p class="text-[10px] font-bold text-rose-500 uppercase mb-2">Patti Mods</p>
+                    <p class="text-lg font-black italic">Rare Instances</p>
+                    <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase">Relationship Driven</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- PAGE 3: DEMAND INTELLIGENCE -->
-        <div id="page-demand" class="hidden-page page-container space-y-10">
-            <header>
-                <h1 class="text-5xl font-black uppercase tracking-tighter text-rose-600 italic">Demand Intelligence</h1>
-                <p class="text-slate-500 mt-4 max-w-2xl font-medium italic">High-realization markets and ACM performance.</p>
-            </header>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Market Realization Table -->
-                <div class="glass-panel p-8 rounded-[2.5rem]">
-                    <h3 class="text-lg font-black uppercase text-rose-500 italic mb-6">Market-wise Realization (25-26)</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs table-alt">
-                            <thead>
-                                <tr class="text-slate-500 font-bold uppercase border-b border-white/5">
-                                    <th class="py-3">Market</th>
-                                    <th class="py-3">GMV (Cr)</th>
-                                    <th class="py-3 text-right">Margin %</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-slate-300">
-                                <tr><td class="py-4 font-bold">Chennai (SR Fruits)</td><td class="py-4">12.72</td><td class="py-4 text-right font-black text-emerald-400 italic">4.39%</td></tr>
-                                <tr><td class="py-4 font-bold">Madurai (MNR Mayaan)</td><td class="py-4">5.85</td><td class="py-4 text-right font-black text-emerald-400 italic">6.01%</td></tr>
-                                <tr><td class="py-4 font-bold">Hyderabad</td><td class="py-4">3.41</td><td class="py-4 text-right italic text-rose-500">1.15%</td></tr>
-                                <tr><td class="py-4 font-bold">Bengaluru</td><td class="py-4">2.01</td><td class="py-4 text-right italic">1.55%</td></tr>
-                                <tr><td class="py-4 font-bold">Kolkata</td><td class="py-4">0.95</td><td class="py-4 text-right italic">0.60%</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ACM Model Stats -->
-                <div class="bg-gradient-to-br from-slate-900 to-black p-10 rounded-[2.5rem] border border-white/10 flex flex-col justify-between">
-                    <div>
-                        <span class="bg-rose-600 px-3 py-1 rounded-full text-[10px] font-black tracking-widest text-white">ACM EXCELLENCE</span>
-                        <h4 class="text-3xl font-black italic text-white uppercase mt-6 leading-tight">Assisted Commission Model</h4>
-                        <p class="text-xs text-slate-500 mt-4 leading-relaxed font-medium italic">ACM served as the primary training lever for Cluster Heads to master quality specs while capturing superior market realization.</p>
-                    </div>
-                    <div class="mt-8 grid grid-cols-2 gap-6">
-                        <div class="border-l-4 border-rose-600 pl-4">
-                            <p class="text-4xl font-black italic">5.69%</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Aggregate Margin</p>
+        <!-- Section: Outlook -->
+        <section id="section-outlook" class="hidden-section fade-in space-y-10">
+            <div class="bg-rose-600 p-12 lg:p-20 rounded-[3rem] text-center shadow-2xl relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-5xl lg:text-8xl font-black uppercase italic text-white tracking-tighter">Target: 6.0%</h2>
+                    <p class="text-rose-100 max-w-2xl mx-auto mt-6 text-sm lg:text-lg font-medium italic">
+                        The foundation of scale is set. The next season shifts focus to Harvesting trust through Uchak/Mandi models and Seller Monetization.
+                    </p>
+                    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-black/20 p-6 rounded-2xl backdrop-blur-md border border-white/10">
+                            <h5 class="font-black italic text-sm">Project Uchak</h5>
+                            <p class="text-[10px] mt-2 opacity-80 italic">Fixed farm booking to kill price volatility.</p>
                         </div>
-                        <div class="border-l-4 border-rose-600 pl-4">
-                            <p class="text-4xl font-black italic">₹2.46 Cr</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total ACM Volume</p>
+                        <div class="bg-black/20 p-6 rounded-2xl backdrop-blur-md border border-white/10">
+                            <h5 class="font-black italic text-sm">Seller Monetization</h5>
+                            <p class="text-[10px] mt-2 opacity-80 italic">Lifting DMP from 2.6% to 4% via fees.</p>
+                        </div>
+                        <div class="bg-black/20 p-6 rounded-2xl backdrop-blur-md border border-white/10">
+                            <h5 class="font-black italic text-sm">ACM Extension</h5>
+                            <p class="text-[10px] mt-2 opacity-80 italic">Scaling high-margin assisted distribution.</p>
                         </div>
                     </div>
                 </div>
+                <!-- Abstract visual element -->
+                <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-black/10 rounded-full blur-3xl"></div>
             </div>
-        </div>
-
-        <!-- PAGE 4: TEAM STRUCTURE -->
-        <div id="page-team" class="hidden-page page-container space-y-10">
-            <header>
-                <h1 class="text-5xl font-black uppercase tracking-tighter text-rose-600 italic text-center">Governance Map</h1>
-            </header>
-
-            <div class="max-w-4xl mx-auto space-y-12">
-                <!-- Org Chart Visual -->
-                <div class="flex flex-col items-center">
-                    <div class="w-72 p-6 glass-panel rounded-3xl text-center shadow-xl shadow-rose-900/10 border-rose-500/30">
-                        <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Leadership</p>
-                        <h4 class="text-xl font-black italic">Category Head</h4>
-                        <p class="text-xs text-slate-500 font-bold mt-1">(1 Member)</p>
-                    </div>
-                    <div class="h-12 w-1 bg-gradient-to-b from-rose-600 to-transparent"></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 w-full mt-4">
-                        <div class="p-8 glass-panel rounded-[2rem] text-center">
-                            <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Gujarat Cluster</p>
-                            <h4 class="text-lg font-black italic">2 Cluster Heads</h4>
-                            <p class="text-xs text-slate-500 mt-4 italic">Managing 6,000+ MT procurement and spot buyer relationships across mandis.</p>
-                        </div>
-                        <div class="p-8 glass-panel rounded-[2rem] text-center">
-                            <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Rajasthan Cluster</p>
-                            <h4 class="text-lg font-black italic">2 Cluster Heads</h4>
-                            <p class="text-xs text-slate-500 mt-4 italic">Focusing on high-trust seller lock-ins and underwriting compliance.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Strategic Guardrails -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                        <i class="fas fa-check-double text-rose-600 text-2xl mb-4"></i>
-                        <h5 class="font-black italic text-sm uppercase">Zero DPD</h5>
-                        <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">Managed 10+ DT buyers with strict credit control cycles.</p>
-                    </div>
-                    <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                        <i class="fas fa-handshake text-rose-600 text-2xl mb-4"></i>
-                        <h5 class="font-black italic text-sm uppercase">Seller Trust</h5>
-                        <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">Removed systemic patti modifications to build long-term equity.</p>
-                    </div>
-                    <div class="p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
-                        <i class="fas fa-user-shield text-rose-600 text-2xl mb-4"></i>
-                        <h5 class="font-black italic text-sm uppercase">Capital Safety</h5>
-                        <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">Advances managed via veteran anchors (JK/Suresh).</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- PAGE 5: WAY FORWARD -->
-        <div id="page-outlook" class="hidden-page page-container space-y-12 text-center">
-            <header>
-                <h1 class="text-7xl font-black uppercase tracking-tighter italic text-rose-600">The 6% Target</h1>
-                <p class="text-slate-500 mt-4 max-w-2xl mx-auto font-medium italic text-lg leading-relaxed">
-                    "Scaling was the foundation. Next season is about harvesting relationship equity and capturing distribution margins."
-                </p>
-            </header>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-                <div class="p-10 glass-panel rounded-[3rem] group hover:bg-rose-600/5">
-                    <div class="w-16 h-16 bg-rose-600/20 rounded-2xl flex items-center justify-center mx-auto mb-8">
-                        <i class="fas fa-warehouse text-rose-500 text-2xl"></i>
-                    </div>
-                    <h4 class="text-2xl font-black italic uppercase">Project Uchak</h4>
-                    <p class="text-sm text-slate-400 mt-4 leading-relaxed font-medium">Booking whole farms at fixed rates via 10-year veteran partners to neutralize spot market volatility.</p>
-                </div>
-                <div class="p-10 glass-panel rounded-[3rem] group hover:bg-rose-600/5">
-                    <div class="w-16 h-16 bg-rose-600/20 rounded-2xl flex items-center justify-center mx-auto mb-8">
-                        <i class="fas fa-funnel-dollar text-rose-500 text-2xl"></i>
-                    </div>
-                    <h4 class="text-2xl font-black italic uppercase">Seller Fees</h4>
-                    <p class="text-sm text-slate-400 mt-4 leading-relaxed font-medium">Monetizing trust by introducing service fees. Target DMP improvement from 2.6% to 4.0%.</p>
-                </div>
-                <div class="p-10 bg-rose-600 rounded-[3rem] shadow-2xl">
-                    <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-8">
-                        <i class="fas fa-chart-line text-white text-2xl"></i>
-                    </div>
-                    <h4 class="text-2xl font-black italic uppercase text-white">Full Extension</h4>
-                    <p class="text-sm text-rose-100 mt-4 leading-relaxed font-medium italic">Combining Kianna distribution + ACM models to push aggregate season margins to the 6% alpha level.</p>
-                </div>
-            </div>
-            
-            <div class="pt-12">
-                <div class="inline-flex items-center gap-6 p-6 glass-panel rounded-full px-12 border-rose-500/20">
-                    <p class="text-sm font-black italic tracking-widest text-slate-500">NEXT SEASON ESTIMATE:</p>
-                    <p class="text-4xl font-black italic text-rose-500">₹50 Cr+ GMV</p>
-                </div>
-            </div>
-        </div>
+        </section>
 
     </main>
 
-    <!-- Navigation Script -->
     <script>
-        function showPage(pageId) {
-            // Hide all pages
-            document.querySelectorAll('.page-container').forEach(page => {
-                page.classList.add('hidden-page');
+        // Core Navigation Logic
+        function navigateTo(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('main > section').forEach(section => {
+                section.classList.add('hidden-section');
             });
             
-            // Show requested page
-            const activePage = document.getElementById(`page-${pageId}`);
-            if (activePage) {
-                activePage.classList.remove('hidden-page');
-            }
+            // Show target section
+            const target = document.getElementById('section-' + sectionId);
+            if (target) target.classList.remove('hidden-section');
             
-            // Update Sidebar Buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('sidebar-item-active');
-                btn.classList.add('text-slate-400');
+            // Update Navigation Menu Visuals
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('nav-active');
+                item.classList.add('text-slate-400');
             });
             
-            const activeBtn = document.getElementById(`btn-${pageId}`);
-            if (activeBtn) {
-                activeBtn.classList.add('sidebar-item-active');
-                activeBtn.classList.remove('text-slate-400');
+            const activeNav = document.getElementById('nav-' + sectionId);
+            if (activeNav) {
+                activeNav.classList.add('nav-active');
+                activeNav.classList.remove('text-slate-400');
             }
 
-            // Scroll to top
+            // Close mobile menu if open
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('hidden')) {
+                sidebar.classList.add('hidden');
+            }
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Initialize first page
-        document.addEventListener('DOMContentLoaded', () => {
-            showPage('overall');
-        });
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('flex');
+            sidebar.classList.toggle('fixed');
+            sidebar.classList.toggle('inset-0');
+        }
+
+        // Ensure first page is visible on load
+        window.onload = function() {
+            navigateTo('overall');
+        }
     </script>
 </body>
 </html>
